@@ -25,6 +25,7 @@ CHANNELS = {
 procs = {}
 # {channel: set(websocket)} — subscribers per channel
 subscribers = {ch: set() for ch in CHANNELS}
+subscribers["activity"] = set()  # receives ALL channel output
 
 
 def set_winsize(fd, cols, rows):
@@ -81,16 +82,30 @@ def cleanup_all():
 
 
 async def broadcast(channel, data):
-    """Send data to all subscribers of a channel."""
+    """Send data to all subscribers of a channel. Also sends to activity subscribers."""
     if not data:
         return
+    text = data.decode("utf-8", errors="replace")
+
+    # Send to channel subscribers
     dead = set()
     for ws in subscribers.get(channel, set()):
         try:
-            await ws.send(json.dumps({"channel": channel, "output": data.decode("utf-8", errors="replace")}))
+            await ws.send(json.dumps({"channel": channel, "output": text}))
         except websockets.exceptions.ConnectionClosed:
             dead.add(ws)
     subscribers[channel] -= dead
+
+    # Also send to activity subscribers
+    if "activity" in subscribers and subscribers["activity"]:
+        prefix = {"hermes": "⎔", "cc": "○", "codex": "◇"}.get(channel, "▸")
+        dead_act = set()
+        for ws in subscribers["activity"]:
+            try:
+                await ws.send(json.dumps({"channel": "activity", "output": f"{prefix} {text}"}))
+            except websockets.exceptions.ConnectionClosed:
+                dead_act.add(ws)
+        subscribers["activity"] -= dead_act
 
 
 async def pty_reader():
@@ -124,10 +139,11 @@ async def handler(ws):
             # Subscribe
             if "channel" in data:
                 ch = data["channel"]
-                if ch not in CHANNELS:
+                if ch not in CHANNELS and ch != "activity":
                     await ws.send(json.dumps({"error": f"unknown channel: {ch}"}))
                     continue
-                if ch not in procs:
+                # Spawn PTY only for non-activity channels
+                if ch != "activity" and ch not in procs:
                     try:
                         spawn(ch)
                     except Exception as e:

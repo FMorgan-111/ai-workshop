@@ -11,429 +11,261 @@
 <style>
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 :root {
-  --bg: #0a0a0a;
-  --surface: #111111;
-  --surface-raised: #1a1a1a;
-  --border: rgba(255,255,255,0.06);
-  --border-light: rgba(255,255,255,0.1);
-  --text: #e8e8e8;
-  --text-dim: #808080;
-  --text-muted: #555555;
-  --accent-blue: #3b82f6;
-  --accent-pink: #ec4899;
-  --accent-green: #22c55e;
-  --accent-amber: #f59e0b;
-  --radius: 8px;
-  --font-sans: 'Geist', system-ui, -apple-system, sans-serif;
-  --font-mono: 'Geist Mono', 'JetBrains Mono', 'Fira Code', monospace;
+  --bg: #0a0a0a; --surface: #111; --border: rgba(255,255,255,0.06);
+  --text: #e8e8e8; --text-dim: #808080; --text-muted: #555;
+  --blue: #3b82f6; --pink: #ec4899; --green: #22c55e; --amber: #f59e0b;
+  --font-sans: 'Geist', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', 'JetBrains Mono', monospace;
 }
+body { background: var(--bg); color: var(--text); font-family: var(--font-sans); height:100vh; overflow:hidden; display:flex; flex-direction:column; }
 
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-sans);
-  height: 100vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
+/* Header */
+header { background: var(--surface); border-bottom:1px solid var(--border); padding:0 20px; height:48px; display:flex; align-items:center; gap:12px; flex-shrink:0; user-select:none; }
+.logo-icon { width:20px; height:20px; background:linear-gradient(135deg,var(--blue),var(--pink)); border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; color:white; }
+.logo-text { font-size:13px; font-weight:500; letter-spacing:-0.32px; color:var(--text); }
 
-/* ── Header ── */
-header {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 0 20px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
-  user-select: none;
-}
+.header-right { margin-left:auto; display:flex; align-items:center; gap:12px; font-size:11px; color:var(--text-dim); }
+.dot { width:6px; height:6px; border-radius:50%; display:inline-block; }
+.dot.on { background:var(--green); box-shadow:0 0 6px var(--green); }
+.dot.off { background:var(--amber); }
+.badge { font-size:9px; padding:2px 6px; border-radius:9999px; background:rgba(255,255,255,0.06); color:var(--text-dim); text-transform:uppercase; letter-spacing:0.3px; }
 
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.logo-icon {
-  width: 20px; height: 20px;
-  background: linear-gradient(135deg, var(--accent-blue), var(--accent-pink));
-  border-radius: 4px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 600; color: white;
-}
-.logo-text {
-  font-size: 13px; font-weight: 500;
-  letter-spacing: -0.32px;
-  color: var(--text);
-}
+/* Workspace */
+.workspace { flex:1; display:flex; flex-direction:column; gap:1px; background:var(--border); overflow:hidden; }
 
-nav {
-  display: flex; gap: 4px; margin-left: 24px;
-}
-nav a {
-  padding: 6px 10px; font-size: 12px; color: var(--text-dim);
-  text-decoration: none; border-radius: 6px; font-weight: 400;
-  transition: all 0.15s;
-}
-nav a:hover { color: var(--text); background: rgba(255,255,255,0.04); }
-nav a.active { color: var(--text); background: rgba(255,255,255,0.06); font-weight: 500; }
+.panels-row { flex:1; display:flex; gap:1px; min-height:0; }
+.panel { background:var(--bg); display:flex; flex-direction:column; overflow:hidden; min-width:0; }
+.panel.left { flex:1; }
+.panel.right { flex:0 0 50%; display:flex; flex-direction:column; }
+.panel.cc { flex:1; }
+.panel.codex { flex:1; border-top:1px solid var(--border); }
 
-.header-right {
-  margin-left: auto;
-  display: flex; align-items: center; gap: 12px;
-  font-size: 11px; color: var(--text-dim);
-}
-.connection-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  display: inline-block;
-}
-.connection-dot.connected { background: var(--accent-green); box-shadow: 0 0 6px var(--accent-green); }
-.connection-dot.disconnected { background: var(--accent-amber); }
-.connection-dot.error { background: #ef4444; }
-.badge {
-  font-size: 9px; padding: 2px 6px; border-radius: 9999px;
-  background: rgba(255,255,255,0.06); color: var(--text-dim);
-  letter-spacing: 0.3px; text-transform: uppercase;
-}
+.resizer { width:3px; cursor:col-resize; flex-shrink:0; transition:background 0.15s; }
+.resizer:hover, .resizer.active { background:var(--blue); }
 
-/* ── Workspace ── */
-.workspace {
-  flex: 1;
-  display: flex;
-  gap: 1px;
-  background: var(--border);
-  overflow: hidden;
-}
+/* Activity panel (collapsible) */
+.activity-panel { height:0; overflow:hidden; transition:height 0.2s; flex-shrink:0; background:var(--bg); border-top:1px solid var(--border); }
+.activity-panel.open { height:150px; }
+.activity-header { background:var(--surface); padding:0 14px; height:28px; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--border); cursor:pointer; user-select:none; }
+.activity-header:hover { background:rgba(255,255,255,0.02); }
+.activity-indicator { width:6px; height:6px; border-radius:50%; background:var(--amber); flex-shrink:0; }
+.activity-name { font-size:10px; font-weight:500; color:var(--text-dim); }
+.activity-count { font-size:9px; color:var(--text-muted); margin-left:auto; }
 
-.panel {
-  background: var(--bg);
-  display: flex; flex-direction: column;
-  overflow: hidden;
-  min-width: 0;
-  flex: 1;
-}
-.panel.hermes { flex: 1; }  /* 50% */
-.panel.right { flex: 0 0 50%; display: flex; flex-direction: column; }  /* right half */
-.panel.cc { flex: 1; }
-.panel.codex { flex: 1; border-top: 1px solid var(--border); }
+.panel-header { background:var(--surface); padding:0 14px; height:32px; display:flex; align-items:center; gap:8px; flex-shrink:0; border-bottom:1px solid var(--border); }
+.indicator { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.indicator.hermes { background:var(--blue); }
+.indicator.cc { background:var(--pink); }
+.indicator.codex { background:var(--green); }
+.panel-name { font-size:11px; font-weight:500; letter-spacing:-0.2px; }
+.panel-sub { font-size:10px; color:var(--text-muted); margin-left:auto; }
 
-.panel-header {
-  background: var(--surface);
-  padding: 0 14px;
-  height: 32px;
-  display: flex; align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-  border-bottom: 1px solid var(--border);
-}
-.panel-indicator {
-  width: 8px; height: 8px; border-radius: 50%;
-  flex-shrink: 0;
-}
-.panel-indicator.hermes { background: var(--accent-blue); }
-.panel-indicator.cc { background: var(--accent-pink); }
-.panel-indicator.codex { background: var(--accent-green); }
-.panel-name {
-  font-size: 11px; font-weight: 500; color: var(--text);
-  letter-spacing: -0.2px;
-}
-.panel-sub {
-  font-size: 10px; color: var(--text-muted);
-  margin-left: auto;
-}
-.panel-actions {
-  display: flex; gap: 2px; margin-left: 8px;
-}
-.panel-actions button {
-  background: none; border: none; color: var(--text-muted);
-  cursor: pointer; padding: 2px 4px; border-radius: 4px;
-  font-size: 12px; transition: all 0.15s;
-}
-.panel-actions button:hover { color: var(--text); background: rgba(255,255,255,0.06); }
+.terminal-wrap { flex:1; padding:4px; overflow:hidden; }
+.terminal-wrap .xterm { height:100%; padding:2px; }
+.terminal-wrap .xterm-viewport { overflow-y:auto !important; }
+.terminal-wrap .xterm-viewport::-webkit-scrollbar { width:6px; }
+.terminal-wrap .xterm-viewport::-webkit-scrollbar-track { background:transparent; }
+.terminal-wrap .xterm-viewport::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.08); border-radius:3px; }
 
-.terminal-container {
-  flex: 1;
-  padding: 4px;
-  overflow: hidden;
-  position: relative;
-}
-.terminal-container .xterm { height: 100%; padding: 2px; }
-.terminal-container .xterm-viewport { overflow-y: auto !important; }
-.xterm .xterm-viewport::-webkit-scrollbar { width: 6px; }
-.xterm .xterm-viewport::-webkit-scrollbar-track { background: transparent; }
-.xterm .xterm-viewport::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+/* Activity terminal - readonly, smaller font */
+.activity-terminal { height:100%; padding:2px 6px; overflow-y:auto; font-family:var(--font-mono); font-size:11px; color:var(--text-dim); line-height:1.5; }
+.activity-line { padding:0 4px; white-space:pre-wrap; word-break:break-all; }
+.activity-line:hover { background:rgba(255,255,255,0.02); }
+.activity-time { color:var(--text-muted); margin-right:6px; }
+.activity-hermes { border-left:2px solid var(--blue); padding-left:6px; }
+.activity-cc { border-left:2px solid var(--pink); padding-left:6px; }
+.activity-codex { border-left:2px solid var(--green); padding-left:6px; }
 
-/* ── Resizer (draggable divider) ── */
-.resizer {
-  width: 3px;
-  cursor: col-resize;
-  background: transparent;
-  flex-shrink: 0;
-  position: relative;
-  z-index: 10;
-  transition: background 0.15s;
-}
-.resizer:hover, .resizer.active {
-  background: var(--accent-blue);
-}
+/* Toolbar */
+.toolbar { background:var(--surface); border-top:1px solid var(--border); height:28px; display:flex; align-items:center; padding:0 14px; font-size:10px; color:var(--text-muted); gap:14px; flex-shrink:0; }
+.toolbar kbd { font-family:var(--font-mono); padding:0 4px; background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:3px; font-size:9px; color:var(--text-dim); }
 
-/* ── Toolbar ── */
-.toolbar {
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  height: 28px;
-  display: flex; align-items: center;
-  padding: 0 14px;
-  font-size: 10px; color: var(--text-muted);
-  gap: 14px;
-  flex-shrink: 0;
-}
-.toolbar kbd {
-  font-family: var(--font-mono);
-  padding: 0 4px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--border-light);
-  border-radius: 3px;
-  font-size: 9px;
-  color: var(--text-dim);
-}
-
-/* ── Welcome overlay ── */
-.welcome {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  pointer-events: none;
-  opacity: 0.08;
-}
-.welcome-text {
-  font-size: 36px; font-weight: 600;
-  letter-spacing: -1.44px;
-  background: linear-gradient(135deg, var(--accent-blue), var(--accent-pink), var(--accent-green));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* ── Animations ── */
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-.panel { animation: fadeIn 0.3s ease; }
-
-/* ── Responsive ── */
-@media (max-width: 768px) {
-  .workspace { flex-direction: column; }
-  .panel.right { flex: 1; }
-  .resizer { display: none; }
-}
+@media (max-width:768px) { .panels-row { flex-direction:column; } .panel.right { flex:1; } .resizer { display:none; } }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">
-    <div class="logo-icon">W</div>
-    <span class="logo-text">AI Workshop</span>
-  </div>
-  <nav>
-    <a href="#" class="active">Workspace</a>
-    <a href="https://github.com/FMorgan-111/ai-workshop" target="_blank">GitHub</a>
-  </nav>
+  <div class="logo-icon">W</div>
+  <span class="logo-text">AI Workshop</span>
   <div class="header-right">
     <span class="badge">v0.1</span>
-    <span id="status-text">disconnected</span>
-    <span class="connection-dot disconnected" id="status-dot"></span>
+    <span id="status-text">offline</span>
+    <span class="dot off" id="status-dot"></span>
   </div>
 </header>
 
 <div class="workspace">
-  <!-- Hermes Panel -->
-  <div class="panel hermes">
-    <div class="panel-header">
-      <span class="panel-indicator hermes"></span>
-      <span class="panel-name">Hermes</span>
-      <span class="panel-sub">deepseek-v4-flash</span>
-      <div class="panel-actions">
-        <button onclick="focusTerminal('hermes')" title="Focus">⌘</button>
+  <div class="panels-row">
+    <!-- Hermes -->
+    <div class="panel left">
+      <div class="panel-header">
+        <span class="indicator hermes"></span>
+        <span class="panel-name">Hermes</span>
+        <span class="panel-sub">deepseek-v4-flash</span>
+      </div>
+      <div class="terminal-wrap" id="term-hermes"></div>
+    </div>
+
+    <div class="resizer" id="resizer"></div>
+
+    <!-- Right: CC + Codex -->
+    <div class="panel right">
+      <div class="panel cc">
+        <div class="panel-header">
+          <span class="indicator cc"></span>
+          <span class="panel-name">Claude Code</span>
+          <span class="panel-sub">claude-sonnet-4</span>
+        </div>
+        <div class="terminal-wrap" id="term-cc"></div>
+      </div>
+      <div class="panel codex">
+        <div class="panel-header">
+          <span class="indicator codex"></span>
+          <span class="panel-name">Codex</span>
+          <span class="panel-sub">gpt-5.1-codex</span>
+        </div>
+        <div class="terminal-wrap" id="term-codex"></div>
       </div>
     </div>
-    <div class="terminal-container" id="term-hermes"></div>
   </div>
 
-  <!-- Draggable Resizer -->
-  <div class="resizer" id="resizer"></div>
-
-  <!-- Right side: CC + Codex -->
-  <div class="panel right">
-    <div class="panel cc">
-      <div class="panel-header">
-        <span class="panel-indicator cc"></span>
-        <span class="panel-name">Claude Code</span>
-        <span class="panel-sub">claude-sonnet-4</span>
-        <div class="panel-actions">
-          <button onclick="focusTerminal('cc')" title="Focus">⌘</button>
-        </div>
-      </div>
-      <div class="terminal-container" id="term-cc"></div>
+  <!-- Activity Panel (collapsible) -->
+  <div class="activity-panel" id="activity-panel">
+    <div class="activity-header" onclick="toggleActivity()">
+      <span class="activity-indicator"></span>
+      <span class="activity-name">Activity Log</span>
+      <span class="activity-count" id="activity-count">0 events</span>
     </div>
-    <div class="panel codex">
-      <div class="panel-header">
-        <span class="panel-indicator codex"></span>
-        <span class="panel-name">Codex</span>
-        <span class="panel-sub">gpt-5.1-codex</span>
-        <div class="panel-actions">
-          <button onclick="focusTerminal('codex')" title="Focus">⌘</button>
-        </div>
-      </div>
-      <div class="terminal-container" id="term-codex"></div>
-    </div>
+    <div class="activity-terminal" id="activity-log"></div>
   </div>
 </div>
 
 <div class="toolbar">
-  <span><kbd>Tab</kbd> focus next</span>
+  <span><kbd>Tab</kbd> focus</span>
   <span><kbd>↑↓</kbd> scroll</span>
   <span><kbd>Ctrl+C</kbd> interrupt</span>
-  <span><kbd>Ctrl+L</kbd> clear</span>
-  <span style="margin-left:auto" id="ws-status">ws://localhost:8765</span>
+  <span style="margin-left:auto" id="ws-status">disconnected</span>
+  <span style="cursor:pointer;color:var(--text-muted);font-size:9px" onclick="toggleActivity()">⚡ Activity</span>
 </div>
 
 <script>
-// ── WebSocket Connection ──
 const WS_URL = 'ws://localhost:8765';
-let ws = null;
-let reconnectTimer = null;
-
-const statusText = document.getElementById('status-text');
-const statusDot = document.getElementById('status-dot');
-const wsStatus = document.getElementById('ws-status');
-
-function connect() {
-  if (ws && ws.readyState === WebSocket.OPEN) return;
-  
-  ws = new WebSocket(WS_URL);
-  
-  ws.onopen = () => {
-    statusText.textContent = 'connected';
-    statusDot.className = 'connection-dot connected';
-    wsStatus.textContent = 'ws://localhost:8765 ● connected';
-    // Subscribe to all channels
-    sendJson({ channel: 'hermes' });
-    sendJson({ channel: 'cc' });
-    sendJson({ channel: 'codex' });
-  };
-  
-  ws.onclose = () => {
-    statusText.textContent = 'disconnected';
-    statusDot.className = 'connection-dot disconnected';
-    wsStatus.textContent = 'ws://localhost:8765 ○ disconnected';
-    // Reconnect after 3s
-    reconnectTimer = setTimeout(connect, 3000);
-  };
-  
-  ws.onerror = () => {
-    statusText.textContent = 'connection error';
-    statusDot.className = 'connection-dot error';
-  };
-  
-  ws.onmessage = (event) => {
-    try {
-      const data = JSON.parse(event.data);
-      if (data.output) {
-        // Determine which channel this is for
-        // For now, route to hermes terminal
-        // In a real impl, we'd track which channel each term is subscribed to
-        writeToTerminal('hermes', data.output);
-      }
-    } catch(e) {}
-  };
-}
-
-function sendJson(obj) {
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify(obj));
-  }
-}
-
-// ── Terminal Setup ──
-
-const XTERM_THEME = {
-  background: '#0a0a0a',
-  foreground: '#e8e8e8',
-  cursor: '#3b82f6',
-  cursorAccent: '#0a0a0a',
-  selectionBackground: 'rgba(59,130,246,0.3)',
-  black: '#1a1a1a',
-  red: '#ef4444',
-  green: '#22c55e',
-  yellow: '#f59e0b',
-  blue: '#3b82f6',
-  magenta: '#ec4899',
-  cyan: '#06b6d4',
-  white: '#e8e8e8',
-  brightBlack: '#555555',
-  brightRed: '#ef4444',
-  brightGreen: '#22c55e',
-  brightYellow: '#f59e0b',
-  brightBlue: '#60a5fa',
-  brightMagenta: '#f472b6',
-  brightCyan: '#67e8f9',
-  brightWhite: '#ffffff',
-};
-
 const channels = {};
+let activityCount = 0;
+const MAX_ACTIVITY = 500;
 
-function createTerminal(containerId) {
-  const el = document.getElementById(containerId);
+// ── Terminal per channel ──
+function createTerminal(id) {
+  const el = document.getElementById(id);
   const term = new Terminal({
-    cursorBlink: true,
-    cursorStyle: 'block',
+    cursorBlink: true, cursorStyle: 'block',
     fontSize: 13,
     fontFamily: "'Geist Mono', 'JetBrains Mono', monospace",
-    theme: XTERM_THEME,
-    allowProposedApi: true,
+    theme: {
+      background: '#0a0a0a', foreground: '#e8e8e8', cursor: '#3b82f6',
+      selectionBackground: 'rgba(59,130,246,0.3)',
+      black: '#1a1a1a', red: '#ef4444', green: '#22c55e',
+      yellow: '#f59e0b', blue: '#3b82f6', magenta: '#ec4899',
+      cyan: '#06b6d4', white: '#e8e8e8',
+    },
     scrollback: 5000,
   });
   const fit = new FitAddon.FitAddon();
   term.loadAddon(fit);
   term.open(el);
-  setTimeout(() => { try { fit.fit(); } catch(e) {} }, 50);
-  
-  // Resize on window resize
-  window.addEventListener('resize', () => {
-    try { fit.fit(); } catch(e) {}
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({
-        resize: { cols: term.cols, rows: term.rows }
-      }));
-    }
-  });
-  
-  // Send input to WebSocket
-  term.onData(data => {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ input: data }));
-    }
-  });
-  
+  setTimeout(() => { try { fit.fit(); } catch(e) {} }, 100);
+  window.addEventListener('resize', () => { try { fit.fit(); } catch(e) {} });
   return { term, fit };
 }
 
-function writeToTerminal(name, text) {
-  if (channels[name]) {
-    channels[name].term.write(text);
+// ── Independent WebSocket per channel ──
+function connectChannel(channelName) {
+  const ch = channels[channelName];
+  if (!ch) return;
+  const ws = new WebSocket(WS_URL);
+
+  ws.onopen = () => {
+    ws.send(JSON.stringify({ channel: channelName }));
+    updateStatus();
+  };
+
+  ws.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      if (data.output && ch.term) {
+        ch.term.write(data.output);
+      }
+    } catch(e) {}
+  };
+
+  ws.onclose = () => {
+    ch.ws = null;
+    updateStatus();
+    setTimeout(() => connectChannel(channelName), 3000);
+  };
+
+  ch.ws = ws;
+  ch.term.onData(data => {
+    if (ch.ws && ch.ws.readyState === WebSocket.OPEN) {
+      ch.ws.send(JSON.stringify({ input: data }));
+    }
+  });
+}
+
+// ── Activity WebSocket ──
+let activityWs = null;
+function connectActivity() {
+  activityWs = new WebSocket(WS_URL);
+  activityWs.onopen = () => activityWs.send(JSON.stringify({ channel: 'activity' }));
+  activityWs.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      if (data.output) addActivityLine(data.output);
+    } catch(e) {}
+  };
+  activityWs.onclose = () => setTimeout(connectActivity, 3000);
+}
+
+function addActivityLine(text) {
+  const log = document.getElementById('activity-log');
+  const lines = text.split('\n').filter(l => l.trim());
+  for (const line of lines) {
+    const div = document.createElement('div');
+    const channel = line.startsWith('⎔') ? 'hermes' : line.startsWith('○') ? 'cc' : line.startsWith('◇') ? 'codex' : 'other';
+    div.className = `activity-line activity-${channel}`;
+    div.textContent = line;
+    log.appendChild(div);
+    activityCount++;
+  }
+  document.getElementById('activity-count').textContent = `${activityCount} events`;
+  log.scrollTop = log.scrollHeight;
+
+  // Trim old entries
+  while (log.children.length > MAX_ACTIVITY) {
+    log.removeChild(log.firstChild);
   }
 }
 
-function focusTerminal(name) {
-  if (channels[name]) {
-    channels[name].term.focus();
-  }
+function toggleActivity() {
+  const panel = document.getElementById('activity-panel');
+  panel.classList.toggle('open');
+}
+
+function updateStatus() {
+  const allConnected = ['hermes','cc','codex'].every(n => channels[n]?.ws?.readyState === WebSocket.OPEN);
+  const dot = document.getElementById('status-dot');
+  const text = document.getElementById('status-text');
+  const wsStatus = document.getElementById('ws-status');
+  dot.className = `dot ${allConnected ? 'on' : 'off'}`;
+  text.textContent = allConnected ? 'connected' : 'connecting...';
+  wsStatus.textContent = allConnected ? '3/3 connected' : 'connecting...';
 }
 
 // ── Draggable Resizer ──
 const resizer = document.getElementById('resizer');
-const hermesPanel = document.querySelector('.panel.hermes');
-const rightPanels = document.querySelector('.panel.right');
+const leftPanel = document.querySelector('.panel.left');
+const rightPanel = document.querySelector('.panel.right');
 let isResizing = false;
 
 resizer.addEventListener('mousedown', (e) => {
@@ -442,50 +274,41 @@ resizer.addEventListener('mousedown', (e) => {
   document.body.style.cursor = 'col-resize';
   document.body.style.userSelect = 'none';
 });
-
 document.addEventListener('mousemove', (e) => {
   if (!isResizing) return;
-  const container = document.querySelector('.workspace');
-  const rect = container.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const pct = Math.max(30, Math.min(70, (x / rect.width) * 100));
-  hermesPanel.style.flex = `0 0 ${pct}%`;
-  rightPanels.style.flex = `0 0 ${100 - pct}%`;
-  // Re-fit terminals
-  Object.values(channels).forEach(c => {
-    try { c.fit.fit(); } catch(e) {}
-  });
+  const rect = document.querySelector('.panels-row').getBoundingClientRect();
+  const pct = Math.max(30, Math.min(70, ((e.clientX - rect.left) / rect.width) * 100));
+  leftPanel.style.flex = `0 0 ${pct}%`;
+  rightPanel.style.flex = `0 0 ${100 - pct}%`;
+  Object.values(channels).forEach(c => { try { c.fit.fit(); } catch(e) {} });
 });
-
 document.addEventListener('mouseup', () => {
   if (isResizing) {
-    isResizing = false;
-    resizer.classList.remove('active');
-    document.body.style.cursor = '';
-    document.body.style.userSelect = '';
+    isResizing = false; resizer.classList.remove('active');
+    document.body.style.cursor = ''; document.body.style.userSelect = '';
   }
 });
 
 // ── Init ──
 document.addEventListener('DOMContentLoaded', () => {
-  channels.hermes = createTerminal('term-hermes');
-  channels.cc = createTerminal('term-cc');
-  channels.codex = createTerminal('term-codex');
-  
-  // Show startup message
+  channels.hermes = { ...createTerminal('term-hermes') };
+  channels.cc = { ...createTerminal('term-cc') };
+  channels.codex = { ...createTerminal('term-codex') };
+
+  // Startup messages
   channels.hermes.term.write('\x1b[36m⎔ Hermes Agent\x1b[0m  •  deepseek-v4-flash\r\n');
   channels.hermes.term.write('\x1b[2mSkills: 150+  |  MCP: github-agent  |  Cron: 4 active\x1b[0m\r\n\r\n');
-  
   channels.cc.term.write('\x1b[35m○ Claude Code\x1b[0m  •  v2.1.161  •  claude-sonnet-4\r\n');
   channels.cc.term.write('\x1b[2mProxy: linoapi.com.cn  |  MCP: github-agent\x1b[0m\r\n\r\n');
-  
   channels.codex.term.write('\x1b[32m◇ Codex CLI\x1b[0m  •  v0.136.0  •  gpt-5.1-codex\r\n');
   channels.codex.term.write('\x1b[2mProvider: openai via linoapi  |  MCP: github-agent\x1b[0m\r\n\r\n');
-  
-  // Connect WebSocket
-  connect();
-  
-  // Focus first terminal
+
+  // Connect each panel independently
+  connectChannel('hermes');
+  connectChannel('cc');
+  connectChannel('codex');
+  connectActivity();
+
   channels.hermes.term.focus();
 });
 </script>
